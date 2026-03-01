@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sender - Secure Messaging</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="mobile-container">
+        <!-- WhatsApp Header -->
+        <div class="header">
+            <a href="index.html" class="header-back">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                </svg>
+            </a>
+            <div class="header-profile">
+                <!-- SVG Avatar placeholder -->
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="#dfe5e7">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z">
+                    </path>
+                </svg>
+            </div>
+            <div class="header-info">
+                <div class="header-name">Receiver <span style="font-size: 12px; margin-left:5px;">🔒</span></div>
+                <div class="header-status">online</div>
+            </div>
+            <div class="header-actions">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path
+                        d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM15 16H5V8h10v8z">
+                    </path>
+                </svg>
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                    <path
+                        d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z">
+                    </path>
+                </svg>
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path
+                        d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area" id="chatArea">
+            <div class="encryption-lock-banner">
+                🔒 Messages and calls are end-to-end encrypted. No one outside of this chat, not even the server, can
+                read or listen to them.
+            </div>
+            <!-- Dynamic bubbles will appear here -->
+        </div>
+
+        <!-- Flow Tracker (Hidden initially) -->
+        <div class="flow-tracker" id="flowTracker">
+            <h3 style="margin-bottom:15px; text-align:center;">Encryption Process</h3>
+            <div id="stepList"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-box">
+                <div class="input-icon">😊</div>
+                <textarea id="messageInput" class="input-field" placeholder="Message" rows="1"></textarea>
+                <div class="input-icon" style="transform: rotate(-45deg); font-size: 20px;">📎</div>
+                <div class="input-icon" style="font-size: 18px;">📷</div>
+            </div>
+            <button class="send-btn" id="sendBtn">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Popup Overlay -->
+        <div class="overlay" id="infoOverlay">
+            <div class="popup">
+                <div class="info-icon">ℹ️</div>
+                <div class="popup-title" id="popupTitle">Step Title</div>
+                <div class="popup-desc" id="popupDesc">Explanation</div>
+                <button class="btn btn-primary" id="nextStepBtn">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const steps = [
+            {
+                action: "User enters message",
+                popup: "Plain text message created",
+                desc: "Your plain text message is temporarily loaded into secure memory."
+            },
+            {
+                action: "Generate AES-256 symmetric key",
+                popup: "One-time encryption key generated",
+                desc: "A unique, highly secure symmetric key is generated mathematically specifically for this one message."
+            },
+            {
+                action: "Encrypt message with AES-256",
+                popup: "Message encrypted using symmetric encryption",
+                desc: "The plain text is converted into unreadable ciphertext using the AES secure key."
+            },
+            {
+                action: "Generate SHA-256 hash",
+                popup: "Integrity hash created to detect tampering",
+                desc: "A unique cryptographic fingerprint of the message is created to ensure no one alters it in transit."
+            },
+            {
+                action: "Encrypt AES key using RSA/ECC",
+                popup: "Only receiver can decrypt this key",
+                desc: "The AES key itself is now locked using the receiver's public key. Only their private key can unlock it."
+            },
+            {
+                action: "Generate Anonymous ID",
+                popup: "Sender identity hidden",
+                desc: "Your real identity is stripped and replaced with an anonymous ID to protect metadata privacy."
+            },
+            {
+                action: "Apply self-destruct timer",
+                popup: "Message will auto-delete after time expires",
+                desc: "A timer is attached ensuring the message cannot live forever on the receiver's device."
+            },
+            {
+                action: "Package encrypted data",
+                popup: "Secure message packet created",
+                desc: "The ciphertext, encrypted key, hash, and metadata form a single, impenetrable packet."
+            },
+            {
+                action: "Send through secure peer-to-peer channel",
+                popup: "No server can read this data",
+                desc: "The packet is transmitted over the network. Servers only act as blind routers."
+            }
+        ];
+
+        let currentStepIndex = 0;
+        let userMessage = "";
+
+        const sendBtn = document.getElementById('sendBtn');
+        const messageInput = document.getElementById('messageInput');
+        const chatArea = document.getElementById('chatArea');
+        const flowTracker = document.getElementById('flowTracker');
+        const stepList = document.getElementById('stepList');
+        const infoOverlay = document.getElementById('infoOverlay');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupDesc = document.getElementById('popupDesc');
+        const nextStepBtn = document.getElementById('nextStepBtn');
+
+        function initSteps() {
+            stepList.innerHTML = '';
+            steps.forEach((step, index) => {
+                const stepEl = document.createElement('div');
+                stepEl.className = 'step-item';
+                stepEl.id = `step-${index}`;
+                stepEl.innerHTML = `
+                    <div class="step-icon">⚙️</div>
+                    <div class="step-content">
+                        <h4>${step.action}</h4>
+                        <p class="hidden" id="step-desc-${index}">${step.popup}</p>
+                    </div>
+                `;
+                stepList.appendChild(stepEl);
+            });
+        }
+
+        sendBtn.addEventListener('click', () => {
+            if (!messageInput.value.trim()) return;
+            userMessage = messageInput.value.trim();
+            messageInput.value = '';
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // Initialize tracker UI
+            initSteps();
+            flowTracker.classList.add('active');
+
+            // Start flow
+            currentStepIndex = 0;
+            setTimeout(() => {
+                executeStep(currentStepIndex);
+            }, 500);
+        });
+
+        function executeStep(index) {
+            if (index >= steps.length) {
+                finishFlow();
+                return;
+            }
+
+            // Update UI list to show active step
+            if (index > 0) {
+                document.getElementById(`step-${index - 1}`).classList.remove('active');
+                document.getElementById(`step-${index - 1}`).classList.add('completed');
+                document.getElementById(`step-${index - 1}`).querySelector('.step-icon').innerText = '✅';
+            }
+
+            const stepEl = document.getElementById(`step-${index}`);
+            stepEl.classList.add('active');
+            stepEl.querySelector('.step-icon').innerText = '⏳';
+            stepEl.querySelector('p').classList.remove('hidden');
+
+            // Scroll the list to the active item
+            stepEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Show popup
+            const stepData = steps[index];
+            popupTitle.innerText = "🔴 Info: " + stepData.popup;
+            popupDesc.innerText = stepData.desc;
+
+            // Change button text for last step
+            if (index === steps.length - 1) {
+                nextStepBtn.innerText = "Finish & Send Message";
+            } else {
+                nextStepBtn.innerText = "Next Step";
+            }
+
+            setTimeout(() => {
+                infoOverlay.classList.add('active');
+            }, 600); // short delay before popup shows
+        }
+
+        nextStepBtn.addEventListener('click', () => {
+            infoOverlay.classList.remove('active');
+            currentStepIndex++;
+            setTimeout(() => {
+                executeStep(currentStepIndex);
+            }, 300);
+        });
+
+        function finishFlow() {
+            flowTracker.classList.remove('active');
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+
+            // Add the bubble to chat area
+            const now = new Date();
+            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble bubble-out';
+            bubble.innerHTML = `
+                <div class="bubble-content">
+                    <div class="bubble-text">${userMessage}</div>
+                    <div class="bubble-meta">
+                        <span class="bubble-time">${timeString}</span>
+                        <span class="blue-tick">✓✓</span>
+                    </div>
+                </div>
+            `;
+            chatArea.appendChild(bubble);
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            // Transmit to receiver via localStorage
+            const payload = {
+                timestamp: Date.now(),
+                text: userMessage,
+                sender: "anonymous"
+            };
+            localStorage.setItem('encryptedMessage', JSON.stringify(payload));
+
+            // Show a custom non-blocking toast instead of alert for better UX
+            setTimeout(() => {
+                const toast = document.createElement('div');
+                toast.className = 'encryption-lock-banner';
+                toast.style.position = 'absolute';
+                toast.style.bottom = '90px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                toast.style.color = 'white';
+                toast.style.zIndex = '200';
+                toast.innerText = "Message transmitted! Switch to the Receiver tab.";
+                document.querySelector('.mobile-container').appendChild(toast);
+
+                setTimeout(() => toast.remove(), 4000);
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>

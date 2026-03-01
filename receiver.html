@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Receiver - Secure Messaging</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .receive-trigger-container {
+            text-align: center;
+            margin-top: 50%;
+        }
+
+        .encrypted-bubble {
+            background-color: var(--wa-bubble-in);
+            align-self: flex-start;
+            border-top-left-radius: 0;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--text-dark);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin-bottom: 20px;
+            border-left: 5px solid red;
+            font-family: monospace;
+            word-break: break-all;
+            opacity: 0.8;
+            transition: all 1s ease;
+        }
+
+        .timer-bar {
+            height: 4px;
+            background-color: var(--red-info);
+            width: 100%;
+            margin-top: 8px;
+            border-radius: 2px;
+            transition: width linear;
+        }
+
+        .fade-out {
+            opacity: 0 !important;
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mobile-container">
+        <!-- WhatsApp Header -->
+        <div class="header">
+            <a href="index.html" class="header-back">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                </svg>
+            </a>
+            <div class="header-profile">
+                <!-- SVG Avatar placeholder -->
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="#dfe5e7">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z">
+                    </path>
+                </svg>
+            </div>
+            <div class="header-info">
+                <div class="header-name">Anonymous Sender <span style="font-size: 12px; margin-left:5px;">🔒</span>
+                </div>
+                <div class="header-status">online</div>
+            </div>
+            <div class="header-actions">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path
+                        d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM15 16H5V8h10v8z">
+                    </path>
+                </svg>
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                    <path
+                        d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z">
+                    </path>
+                </svg>
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path
+                        d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area" id="chatArea">
+            <div class="encryption-lock-banner">
+                🔒 Messages and calls are end-to-end encrypted. No one outside of this chat, not even the server, can
+                read or listen to them.
+            </div>
+
+            <div class="receive-trigger-container" id="triggerContainer">
+                <div style="color: #667781; font-size: 14px; margin-bottom: 10px;">Waiting for incoming secure
+                    message...</div>
+                <div class="pulse" style="font-size: 24px;">🔄</div>
+            </div>
+        </div>
+
+        <!-- Flow Tracker -->
+        <div class="flow-tracker" id="flowTracker">
+            <h3 style="margin-bottom:15px; text-align:center;">Decryption Process</h3>
+            <div id="stepList"></div>
+        </div>
+
+        <!-- Popup Overlay -->
+        <div class="overlay" id="infoOverlay">
+            <div class="popup">
+                <div class="info-icon">ℹ️</div>
+                <div class="popup-title" id="popupTitle">Step Title</div>
+                <div class="popup-desc" id="popupDesc">Explanation</div>
+                <button class="btn btn-primary" id="nextStepBtn">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const steps = [
+            {
+                action: "Receive encrypted message",
+                popup: "Encrypted packet received",
+                desc: "A secure payload arrived containing the locked ciphertext, hashed metadata, and encrypted AES key."
+            },
+            {
+                action: "Verify anonymous sender",
+                popup: "Identity hidden but verified",
+                desc: "The anonymous ID is checked against a cryptographic ledger to confirm authenticity without revealing their exact identity."
+            },
+            {
+                action: "Decrypt AES key using private key",
+                popup: "Only receiver can unlock message",
+                desc: "Using your device's private RSA/ECC key to unlock the symmetric AES key sent by the sender."
+            },
+            {
+                action: "Decrypt message using AES key",
+                popup: "Original message restored",
+                desc: "The unlocked AES key is now used to reverse the ciphertext back into plain text."
+            },
+            {
+                action: "Generate SHA-256 hash",
+                popup: "Checking message integrity",
+                desc: "Generating a new hash for the decrypted message to see if it matches the hash initially sent."
+            },
+            {
+                action: "Compare hashes",
+                popup: "Message safe and verified",
+                desc: "The hashes match identically! No tampering occurred during transit. Safe to display."
+            },
+            {
+                action: "Start self-destruct timer",
+                popup: "Auto-delete countdown started",
+                desc: "The timer embedded by the sender is activated. This message will be permanently deleted shortly."
+            },
+            {
+                action: "Secure deletion after timer",
+                popup: "Message erased permanently",
+                desc: "The timer expired! The message has been securely wiped from memory."
+            }
+        ];
+
+        let currentStepIndex = 0;
+
+        const receiveBtn = document.getElementById('receiveBtn');
+        const triggerContainer = document.getElementById('triggerContainer');
+        const chatArea = document.getElementById('chatArea');
+        const flowTracker = document.getElementById('flowTracker');
+        const stepList = document.getElementById('stepList');
+        const infoOverlay = document.getElementById('infoOverlay');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupDesc = document.getElementById('popupDesc');
+        const nextStepBtn = document.getElementById('nextStepBtn');
+
+        let encryptedBubbleEl = null;
+
+        function initSteps() {
+            stepList.innerHTML = '';
+            steps.forEach((step, index) => {
+                const stepEl = document.createElement('div');
+                stepEl.className = 'step-item';
+                stepEl.id = `step-${index}`;
+                stepEl.innerHTML = `
+                    <div class="step-icon">⚙️</div>
+                    <div class="step-content">
+                        <h4>${step.action}</h4>
+                        <p class="hidden" id="step-desc-${index}">${step.popup}</p>
+                    </div>
+                `;
+                stepList.appendChild(stepEl);
+            });
+        }
+
+        let receivedMessageText = "";
+
+        // Listen for storage changes from the Sender tab
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'encryptedMessage' && event.newValue) {
+                const payload = JSON.parse(event.newValue);
+                receivedMessageText = payload.text;
+
+                // Automatically trigger the receive flow
+                triggerContainer.style.display = 'none';
+
+                // Show encrypted bubble
+                encryptedBubbleEl = document.createElement('div');
+                encryptedBubbleEl.className = 'encrypted-bubble';
+                encryptedBubbleEl.innerText = "0x8faB9... ciphertext block ...c42E";
+                chatArea.appendChild(encryptedBubbleEl);
+
+                // Initialize tracker UI
+                initSteps();
+                flowTracker.classList.add('active');
+
+                // Start flow
+                currentStepIndex = 0;
+                setTimeout(() => {
+                    executeStep(currentStepIndex);
+                }, 800);
+            }
+        });
+
+        function executeStep(index) {
+            if (index >= steps.length) {
+                finishFlow();
+                return;
+            }
+
+            if (index > 0) {
+                document.getElementById(`step-${index - 1}`).classList.remove('active');
+                document.getElementById(`step-${index - 1}`).classList.add('completed');
+                document.getElementById(`step-${index - 1}`).querySelector('.step-icon').innerText = '✅';
+            }
+
+            const stepEl = document.getElementById(`step-${index}`);
+            stepEl.classList.add('active');
+            stepEl.querySelector('.step-icon').innerText = '⏳';
+            stepEl.querySelector('p').classList.remove('hidden');
+
+            stepEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Visual updates based on step
+            if (index === 3) {
+                // Decrypting message
+                encryptedBubbleEl.innerText = "Decrypting... [**********]";
+            } else if (index === 4 || index === 5) {
+                encryptedBubbleEl.style.borderLeftColor = 'orange';
+                encryptedBubbleEl.innerText = "Checking integrity...\n[Hash Match!]";
+            }
+
+            const stepData = steps[index];
+            popupTitle.innerText = "🔴 Info: " + stepData.popup;
+            popupDesc.innerText = stepData.desc;
+
+            // Handle the self-destruct mechanism
+            if (index === 6) {
+                // Display actual message and timer
+                encryptedBubbleEl.style.borderLeftColor = 'green';
+                encryptedBubbleEl.style.fontFamily = 'inherit';
+                encryptedBubbleEl.innerHTML = `
+                    <div style="font-weight:bold; color:var(--wa-light-green); margin-bottom:5px;">Secret Message</div>
+                    <div class="bubble-text" style="color: var(--text-dark);">${receivedMessageText}</div>
+                    <div class="timer-bar" id="timerBar"></div>
+                    <div class="bubble-meta">
+                        <span class="bubble-time">Now</span>
+                    </div>
+                `;
+            }
+
+            if (index === 7) {
+                // Animate destruction
+                const timerBar = document.getElementById('timerBar');
+                if (timerBar) {
+                    timerBar.style.transition = 'width 1.5s linear';
+                    timerBar.style.width = '0%';
+                }
+                setTimeout(() => {
+                    encryptedBubbleEl.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (encryptedBubbleEl.parentNode) {
+                            encryptedBubbleEl.parentNode.removeChild(encryptedBubbleEl);
+                        }
+                    }, 1000);
+                }, 1500);
+            }
+
+            if (index === steps.length - 1) {
+                nextStepBtn.innerText = "Finish Demo";
+            } else {
+                nextStepBtn.innerText = "Next Step";
+            }
+
+            // For the last step (deletion), add a slight delay so they see the timer bar shrink
+            const delay = index === 7 ? 2000 : 600;
+
+            setTimeout(() => {
+                infoOverlay.classList.add('active');
+            }, delay);
+        }
+
+        nextStepBtn.addEventListener('click', () => {
+            infoOverlay.classList.remove('active');
+            currentStepIndex++;
+            setTimeout(() => {
+                executeStep(currentStepIndex);
+            }, 300);
+        });
+
+        function finishFlow() {
+            flowTracker.classList.remove('active');
+
+            setTimeout(() => {
+                alert("Demo complete! The message has been securely received and permanently erased.");
+                window.location.href = "index.html";
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>
