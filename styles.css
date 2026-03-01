@@ -38,7 +38,7 @@ body {
   align-items: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  position: fixed;
+  position: sticky;
   top: 0;
   height: 65px;
 }
@@ -192,8 +192,6 @@ body {
   width: 100%;
   max-width: 1200px;
   flex-grow: 1;
-  margin-top: 65px;
-  /* Height of the fixed navbar */
   justify-content: center;
   align-items: center;
   gap: 30px;
