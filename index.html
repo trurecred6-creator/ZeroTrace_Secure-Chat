@@ -62,6 +62,9 @@
             </div>
         </div>
         <div class="nav-links">
+            <button class="nav-btn" onclick="openModal('problemStatementModalOverlay')"
+                style="background:#8e44ad; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:15px;">🎯
+                Problem Statement</button>
             <button class="nav-btn" onclick="openModal('architectureModalOverlay')"
                 style="background:var(--wa-dark-green); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:15px;">🏗️
                 Architecture</button>
@@ -250,6 +253,52 @@
                 <button class="btn"
                     onclick="document.getElementById('vaultModalOverlay').classList.remove('active')">Close
                     Vault</button>
+            </div>
+        </div>
+
+        <!-- Problem Statement Modal -->
+        <div class="overlay" id="problemStatementModalOverlay">
+            <div class="popup solutions-content">
+                <span class="close-icon"
+                    onclick="document.getElementById('problemStatementModalOverlay').classList.remove('active')">&times;</span>
+                <h2 class="features-title" style="color: #3B1B1B;">Secure Peer-to-Peer Chat Module</h2>
+
+                <div class="solutions-grid single-col">
+                    <div class="solution-card">
+                        <span class="solution-label" style="font-size: 16px; color: #3B1B1B;">Challenge:</span>
+                        <p style="margin-top: 10px; font-size: 14px;">Build a secure mobile chat prototype (can be
+                            Android or cross-platform) supporting:</p>
+                        <ul style="margin-top: 10px; font-size: 14px;">
+                            <li style="margin-bottom: 5px;">End-to-end encryption (E2EE),</li>
+                            <li style="margin-bottom: 5px;">Optional self-destructing messages,</li>
+                            <li style="margin-bottom: 5px;">Basic anonymity (no central server logging).</li>
+                        </ul>
+                    </div>
+
+                    <div class="solution-card">
+                        <span class="solution-label" style="font-size: 16px; color: #3B1B1B;">Key Features to
+                            Implement:</span>
+                        <ul style="margin-top: 10px; font-size: 14px;">
+                            <li style="margin-bottom: 5px;">E2EE using well-known libraries (e.g., libsodium / Signal9X
+                                protocols).</li>
+                            <li style="margin-bottom: 5px;">Timer-based auto deletion of messages from both devices.
+                            </li>
+                            <li style="margin-bottom: 5px;">Minimal UI for chatting.</li>
+                        </ul>
+                    </div>
+
+                    <div class="solution-card">
+                        <span class="solution-label" style="font-size: 16px; color: #3B1B1B;">Expected Outcome:</span>
+                        <p style="margin-top: 10px; font-size: 14px;">A working mobile chat app where messages are
+                            encrypted and can auto-expire securely after a timeout.</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn"
+                        onclick="document.getElementById('problemStatementModalOverlay').classList.remove('active')"
+                        style="width: 100%; max-width: 250px;">Close Problem Statement</button>
+                </div>
             </div>
         </div>
 
