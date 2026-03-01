@@ -62,18 +62,13 @@
             </div>
         </div>
         <div class="nav-links">
-            <button class="nav-btn" onclick="openModal('problemStatementModalOverlay')"
-                style="background:#8e44ad; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:15px;">🎯
-                Problem Statement</button>
-            <button class="nav-btn" onclick="openModal('architectureModalOverlay')"
-                style="background:var(--wa-dark-green); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:15px;">🏗️
+            <button class="nav-btn dropdown-btn" onclick="openModal('problemStatementModalOverlay')">🎯 Problem
+                Statement</button>
+            <button class="nav-btn dropdown-btn" onclick="openModal('architectureModalOverlay')">🏗️
                 Architecture</button>
-            <button class="nav-btn" onclick="openModal('featuresModalOverlay')"
-                style="background:var(--wa-light-green); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:15px;">💡
-                Detailed Solutions</button>
-            <button class="nav-btn" onclick="openMsgInfoModalGlobal()"
-                style="background:var(--wa-dark-green); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:15px;">🔒
-                Security Codebase</button>
+            <button class="nav-btn dropdown-btn" onclick="openModal('featuresModalOverlay')">💡 Detailed
+                Solutions</button>
+            <button class="nav-btn dropdown-btn" onclick="openMsgInfoModalGlobal()">🔒 Security Codebase</button>
             <button class="dropdown-btn" onclick="toggleNavDropdown(event)">Project Resources ▼</button>
             <div class="dropdown-content" id="navDropdown">
                 <a href="https://github.com/trurecred6-creator/ZeroTrace_Secure-Chat" target="_blank">GitHub</a>
