@@ -139,7 +139,7 @@
         </div>
 
         <!-- SECURE CHANNEL -->
-        <div class="channel-middle">
+        <div class="channel-middle" id="secureChannel">
             <div class="secure-shield">
                 <svg viewBox="0 0 24 24" width="50" height="50" fill="var(--wa-green)">
                     <path
@@ -147,8 +147,11 @@
                     </path>
                 </svg>
             </div>
-            <div class="shield-label">Secure E2EE Channel</div>
+            <div class="shield-label" id="shieldLabel">Secure E2EE Channel</div>
             <div id="channelData" class="channel-text">0x7f4e9a... (Ciphertext)</div>
+            <div class="particle-stream" id="particleStream">
+                <!-- Particles will be generated here -->
+            </div>
         </div>
 
         <!-- RECEIVER MOBILE -->
@@ -608,6 +611,8 @@
             receiverSendBtn.disabled = true;
 
             const isS2R = senderName === 'You';
+            const secureChannel = document.getElementById('secureChannel');
+            const particleStream = document.getElementById('particleStream');
 
             const sourceFlowEl = isS2R ? document.getElementById('senderFlow') : document.getElementById('receiverFlow');
             const destFlowEl = isS2R ? document.getElementById('receiverFlow') : document.getElementById('senderFlow');
@@ -654,9 +659,10 @@
             sourceFlowEl.classList.add('active');
 
             const sourceChat = isS2R ? senderChat : receiverChat;
-            const pendingBubbleText = sourceChat.lastElementChild.querySelector('.bubble-text');
-            // Generate a scrambled version of the text
+            const lastOutBubble = sourceChat.lastElementChild;
+            const pendingBubbleText = lastOutBubble ? lastOutBubble.querySelector('.bubble-text') : null;
             const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#%&*";
+
             let scrambled = "";
             for (let i = 0; i < text.length; i++) {
                 scrambled += text[i] === ' ' ? ' ' : charset.charAt(Math.floor(Math.random() * charset.length));
@@ -665,27 +671,50 @@
             for (let i = 0; i < encFlowSteps.length; i++) {
                 await processStepAuto(sourceListId, i);
 
-                // Animate literal encryption on sender side
-                if (i === 2) {
-                    pendingBubbleText.innerText = scrambled;
-                    pendingBubbleText.style.fontFamily = 'monospace';
-                    pendingBubbleText.style.color = 'var(--wa-light-green)';
+                if (i === 2 && pendingBubbleText) {
+                    // PREMIUM: Real-time scrambling animation
+                    pendingBubbleText.classList.add('encrypting');
+                    let count = 0;
+                    const scrambleInt = setInterval(() => {
+                        let temp = "";
+                        for (let j = 0; j < text.length; j++) {
+                            temp += text[j] === ' ' ? ' ' : charset.charAt(Math.floor(Math.random() * charset.length));
+                        }
+                        pendingBubbleText.innerText = temp;
+                        if (++count > 10) {
+                            clearInterval(scrambleInt);
+                            pendingBubbleText.innerText = scrambled;
+                            pendingBubbleText.style.fontFamily = 'monospace';
+                            pendingBubbleText.style.color = 'var(--wa-light-green)';
+                            pendingBubbleText.classList.remove('encrypting');
+                        }
+                    }, 50);
                 }
             }
 
-            channelData.innerText = scrambled.substring(0, 10) + "... (Ciphertext)";
-            if (isS2R) {
-                channelData.classList.add('active');
-            } else {
-                channelData.classList.add('active-reverse');
+            // PREMIUM: Particle Stream Generation
+            particleStream.innerHTML = '';
+            const particleCount = 20;
+            for (let i = 0; i < particleCount; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.top = `${Math.random() * 100}%`;
+                p.style.animationDelay = `${Math.random() * 1.5}s`;
+                p.style.left = isS2R ? '-20px' : 'auto';
+                p.style.right = isS2R ? 'auto' : '-20px';
+                particleStream.appendChild(p);
             }
+
+            channelData.innerText = scrambled.substring(0, 10) + "... (Ciphertext)";
+            secureChannel.classList.add('active');
+            if (!isS2R) secureChannel.classList.add('active-reverse');
 
             await new Promise(r => setTimeout(r, 700));
             sourceFlowEl.classList.remove('active');
 
             await new Promise(r => setTimeout(r, 1300));
-            channelData.classList.remove('active');
-            channelData.classList.remove('active-reverse');
+            secureChannel.classList.remove('active');
+            secureChannel.classList.remove('active-reverse');
 
             destFlowEl.classList.add('active');
 
@@ -699,41 +728,45 @@
             destChat.appendChild(tempBubble);
             destChat.scrollTop = destChat.scrollHeight;
 
+            const destScrambledText = document.getElementById('tempScrambledText');
+
             for (let i = 0; i < decFlowSteps.length; i++) {
                 await processStepAuto(destListId, i);
-
-                // Animate literal decryption on receiver side
-                if (i === 3) {
-                    const tempTextEl = document.getElementById('tempScrambledText');
-                    if (tempTextEl) {
-                        tempTextEl.innerText = text;
-                        tempTextEl.style.fontFamily = 'inherit';
-                        tempTextEl.style.color = 'inherit';
-                    }
+                if (i === 3 && destScrambledText) {
+                    // PREMIUM: Scramble back to original
+                    let count = 0;
+                    const descrambleInt = setInterval(() => {
+                        let temp = "";
+                        for (let j = 0; j < text.length; j++) {
+                            if (Math.random() > count / 10) {
+                                temp += charset.charAt(Math.floor(Math.random() * charset.length));
+                            } else {
+                                temp += text[j];
+                            }
+                        }
+                        destScrambledText.innerText = temp;
+                        if (++count > 10) {
+                            clearInterval(descrambleInt);
+                            destScrambledText.innerText = text;
+                            destScrambledText.style.fontFamily = 'inherit';
+                            destScrambledText.style.color = 'inherit';
+                        }
+                    }, 50);
                 }
             }
 
+            // Save to history and cleanup
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            let timerVal = 0;
-            if (isS2R) timerVal = parseInt(document.getElementById('senderTimer').value);
-            else timerVal = parseInt(document.getElementById('receiverTimer').value);
+            let timerVal = isS2R ? parseInt(document.getElementById('senderTimer').value) : parseInt(document.getElementById('receiverTimer').value);
 
             let msgObj = {
                 text, time, sender: senderName, id: Date.now() + Math.random(),
-                aesKey: aesKey,
-                msgHash: msgHash,
-                anonId: anonId,
-                share1: share1,
-                share2: share2
+                aesKey, msgHash, anonId, share1, share2
             };
-            if (timerVal > 0) {
-                msgObj.expiresAt = Date.now() + (timerVal * 1000);
-            }
+            if (timerVal > 0) msgObj.expiresAt = Date.now() + (timerVal * 1000);
 
             chatHistory.push(msgObj);
             localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-
             renderMessages();
 
             setTimeout(() => {
@@ -742,10 +775,8 @@
                 senderSendBtn.disabled = false;
                 receiverInput.disabled = false;
                 receiverSendBtn.disabled = false;
-
-                if (isS2R) senderInput.focus();
-                else receiverInput.focus();
-            }, 800);
+                if (isS2R) senderInput.focus(); else receiverInput.focus();
+            }, 500);
         }
 
         senderSendBtn.onclick = () => {
